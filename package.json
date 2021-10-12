@@ -5,6 +5,11 @@
   "author": "mjaworski <maciej@jaworski.app>",
   "license": "MIT",
   "devDependencies": {
+    "@types/pg": "^8.6.1",
+    "rimraf": "^3.0.2",
     "typescript": "^4.4.3"
+  },
+  "dependencies": {
+    "pg": "^8.7.1"
   }
 }

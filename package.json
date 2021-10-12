@@ -1,0 +1,10 @@
+{
+  "name": "pg-queue",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "mjaworski <maciej@jaworski.app>",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.4.3"
+  }
+}

@@ -2,8 +2,13 @@
   "name": "pg-queue",
   "version": "1.0.0",
   "main": "index.js",
-  "author": "mjaworski <maciej@jaworski.app>",
+  "author": "mjaworski <maciej.jaworski@leocode.com>",
   "license": "MIT",
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "tsc",
+    "run": "node dist/index.js"
+  },
   "devDependencies": {
     "@types/pg": "^8.6.1",
     "rimraf": "^3.0.2",

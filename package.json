@@ -9,7 +9,9 @@
     "build": "tsc",
     "prerun:dev": "yarn build",
     "run:dev": "node dist/index.js",
-    "run": "node dist/index.js"
+    "run": "node dist/index.js",
+    "ci:lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet",
+    "lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet --fix"
   },
   "devDependencies": {
     "@types/pg": "^8.6.1",

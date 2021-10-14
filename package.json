@@ -1,7 +1,8 @@
 {
   "name": "pg-queue",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "author": "mjaworski <maciej.jaworski@leocode.com>",
   "license": "MIT",
   "scripts": {
@@ -28,5 +29,8 @@
   "dependencies": {
     "pg": "^8.7.1",
     "uuid": "^8.3.2"
-  }
+  },
+  "files": [
+    "/dist"
+  ]
 }

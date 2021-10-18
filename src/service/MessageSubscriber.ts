@@ -1,6 +1,9 @@
 import { DatabaseManager } from './DatabaseManager';
 import { MessageHandler, Subscription } from '../types';
 
+const wait = async (milliseconds: number): Promise<unknown> =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));
+
 export class MessageSubscriber {
   private readonly WITH_MESSAGES_TIMEOUT = 20;
   private readonly WITHOUT_MESSAGES_TIMEOUT = 200;
@@ -11,28 +14,30 @@ export class MessageSubscriber {
     let timeout: number;
 
     const runner = async () => {
-      await this.databaseManager.transactional(async () => {
-        const message = await this.findMessage(subscriptionId);
+      while (true) {
+        await this.databaseManager.transactional(async () => {
+          const message = await this.findMessage(subscriptionId);
 
-        if (!message) {
-          timeout = this.WITHOUT_MESSAGES_TIMEOUT;
-          return;
-        }
+          if (!message) {
+            timeout = this.WITHOUT_MESSAGES_TIMEOUT;
+            return;
+          }
 
-        timeout = this.WITH_MESSAGES_TIMEOUT;
+          timeout = this.WITH_MESSAGES_TIMEOUT;
 
-        try {
-          await handler(message);
-          await this.markSubscriptionMessageAsProcessed(message.subscriptionsMessageId);
-        } catch (error) {
-          await this.markSubscriptionMessageAsProcessedError(message.subscriptionsMessageId);
-        }
-      });
+          try {
+            await handler(message);
+            await this.markSubscriptionMessageAsProcessed(message.subscriptionsMessageId);
+          } catch (error) {
+            await this.markSubscriptionMessageAsProcessedError(message.subscriptionsMessageId);
+          }
+        });
 
-      setTimeout(runner, timeout);
+        await wait(timeout);
+      }
     };
 
-    await runner();
+    setTimeout(runner, this.WITH_MESSAGES_TIMEOUT);
   }
 
   private async findMessage(subscriptionId: string): Promise<any> {

@@ -8,11 +8,10 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "tsc",
-    "prerun:dev": "yarn build",
-    "run:dev": "node dist/index.js",
-    "run": "node dist/index.js",
     "ci:lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet",
-    "lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet --fix"
+    "lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
+    "demo:publisher": "node dist/demoPublisher.js",
+    "demo:subscriber": "node dist/demoSubscriber.js"
   },
   "devDependencies": {
     "@types/pg": "^8.6.1",

@@ -9,5 +9,7 @@ export interface ClientApi {
 
   publish<T>(topic: Topic, message: Message<T>): Promise<void>;
 
-  subscribe<T>({ topicId }: Subscription, handler: MessageHandler<T>): Promise<void>;
+  subscribe<T>({ topicId }: Subscription, handler: MessageHandler<T>): Promise<string>;
+
+  unsubscribe<T>(handlerId: string): void;
 }

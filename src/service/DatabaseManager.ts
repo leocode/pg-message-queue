@@ -1,39 +1,46 @@
-import { Pool, PoolConfig } from 'pg';
+import { Knex, knex } from 'knex';
+import { Topic } from '../types/Topic';
+import { Subscription } from '../types/Subscription';
+import Transaction = Knex.Transaction;
+import { MessageEntity } from '../types/Message';
 
 export class DatabaseManager {
-  private readonly pool: Pool;
+  private readonly knex: Knex;
 
-  private isConnected = false;
-
-  constructor(poolConfig: PoolConfig) {
-    this.pool = new Pool(poolConfig);
-
-    this.pool.on('error', (error) => {
-      throw error;
+  constructor(postgresDsn: string) {
+    this.knex = knex({
+      client: 'pg',
+      connection: postgresDsn,
     });
   }
 
-  async connect(): Promise<void> {
-    await this.pool.connect();
-    this.isConnected = true;
-  }
-
-  async executeQuery(query: string, ...params: any[]): Promise<any> {
-    if (!this.isConnected) {
-      throw new Error('Client is not connected!');
-    }
-
-    return this.pool.query(query, params);
-  }
-
-  async transactional(runner: () => Promise<void>): Promise<void> {
+  async checkConnection(): Promise<void> {
     try {
-      await this.pool.query('BEGIN');
-      await runner();
-      await this.pool.query('COMMIT');
+      await this.knex.raw('SELECT now()');
     } catch (error) {
-      await this.pool.query('ROLLBACK');
       throw error;
     }
+  }
+
+  getMessagesQueryBuilder() {
+    return this.knex.withSchema('pgpg').from<any, MessageEntity>('messages');
+  }
+
+  getSubscriptionsQueryBuilder() {
+    return this.knex.withSchema('pgpg').from<any, Subscription>('subscriptions');
+  }
+
+  getSubscriptionsMessagesQueryBuilder() {
+    return this.knex.withSchema('pgpg').from('subscriptions_messages');
+  }
+
+  getTopicsQueryBuilder() {
+    return this.knex.withSchema('pgpg').from<any, Topic>('topics');
+  }
+
+  async transactional(runner: (transactionScope: Transaction) => Promise<void>): Promise<void> {
+    await this.knex.transaction(async (transactionScope: Transaction) => {
+      await runner(transactionScope);
+    });
   }
 }

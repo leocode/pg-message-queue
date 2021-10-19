@@ -1,6 +1,7 @@
 import { DatabaseManager } from './DatabaseManager';
-import { Subscription, Topic } from '../types';
 import { v4 as uuid4 } from 'uuid';
+import { Subscription } from '../types/Subscription';
+import { Topic } from '../types/Topic';
 
 export class SubscriptionService {
   constructor(private readonly databaseManager: DatabaseManager) {}
@@ -15,29 +16,38 @@ export class SubscriptionService {
     return this.create(name, topic);
   }
 
-  private async find(name: string, { id: topicId }: Topic): Promise<Subscription | null> {
-    const { rows } = await this.databaseManager.executeQuery(
-      `SELECT subscription_id as id, name, topic_id as "topicId" FROM subscriptions WHERE name = $1 AND topic_id =  $2 LIMIT 1;`,
-      name,
-      topicId,
-    );
+  private async find(name: string, { id: topic_id }: Topic): Promise<Subscription | null> {
+    const queryBuilder = this.databaseManager.getSubscriptionsQueryBuilder();
 
-    return rows.length ? rows[0] : null;
+    return queryBuilder
+      .column({ id: 'subscription_id' }, 'name', { topicId: 'topic_id' })
+      .where({
+        topic_id: topic_id,
+        name,
+      })
+      .first();
   }
 
-  private async create(subscriptionName: string, { id }: Topic): Promise<Subscription> {
+  private async create(subscriptionName: string, { id: topicId }: Topic): Promise<Subscription> {
     const subscriptionId = uuid4();
-    await this.databaseManager.executeQuery(
-      'INSERT INTO subscriptions(subscription_id, name, topic_id) VALUES($1, $2, $3);',
-      subscriptionId,
-      subscriptionName,
-      id,
-    );
+    await this.databaseManager.getSubscriptionsQueryBuilder().insert({
+      subscription_id: subscriptionId,
+      topic_id: topicId,
+      name: subscriptionName,
+    });
 
     return {
       id: subscriptionId,
       name: subscriptionName,
-      topicId: id,
+      topicId,
     };
+  }
+
+  async findByTopicId(topicId: string): Promise<Subscription[]> {
+    const queryBuilder = this.databaseManager.getSubscriptionsQueryBuilder();
+
+    return queryBuilder.column({ id: 'subscription_id' }, 'name', { topicId: 'topic_id' }).where({
+      topic_id: topicId,
+    });
   }
 }

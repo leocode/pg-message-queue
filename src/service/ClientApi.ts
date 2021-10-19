@@ -1,4 +1,6 @@
-import { Message, MessageHandler, Subscription, Topic } from '../types';
+import { Subscription } from '../types/Subscription';
+import { Topic } from '../types/Topic';
+import { Message, MessageHandler } from '../types/Message';
 
 export interface ClientApi {
   provideTopic(topicName: string): Promise<Topic>;

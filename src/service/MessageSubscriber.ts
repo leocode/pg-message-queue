@@ -1,5 +1,8 @@
 import { DatabaseManager } from './DatabaseManager';
-import { MessageHandler, Subscription } from '../types';
+import { Subscription } from '../types/Subscription';
+import { MessageHandler } from '../types/Message';
+import { Knex } from 'knex';
+import Transaction = Knex.Transaction;
 
 const wait = async (milliseconds: number): Promise<unknown> =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -15,8 +18,8 @@ export class MessageSubscriber {
 
     const runner = async () => {
       while (true) {
-        await this.databaseManager.transactional(async () => {
-          const message = await this.findMessage(subscriptionId);
+        await this.databaseManager.transactional(async (transactionScope) => {
+          const message = await this.findMessage(subscriptionId, transactionScope);
 
           if (!message) {
             timeout = this.WITHOUT_MESSAGES_TIMEOUT;
@@ -27,9 +30,9 @@ export class MessageSubscriber {
 
           try {
             await handler(message);
-            await this.markSubscriptionMessageAsProcessed(message.subscriptionsMessageId);
+            await this.markSubscriptionMessageAsProcessed(message.subscriptionsMessageId, transactionScope);
           } catch (error) {
-            await this.markSubscriptionMessageAsProcessedError(message.subscriptionsMessageId);
+            await this.markSubscriptionMessageAsProcessedError(message.subscriptionsMessageId, transactionScope);
           }
         });
 
@@ -40,33 +43,44 @@ export class MessageSubscriber {
     setTimeout(runner, this.WITH_MESSAGES_TIMEOUT);
   }
 
-  private async findMessage(subscriptionId: string): Promise<any> {
-    const { rows } = await this.databaseManager.executeQuery(
-      `
-          SELECT sm.id as "subscriptionsMessageId", m.*
-          FROM subscriptions_messages sm
-                   INNER JOIN messages m on sm.message_id = m.message_id
-          WHERE sm.subscription_id = $1
-            AND sm.message_state = 'published'
-              FOR UPDATE SKIP LOCKED
-          LIMIT 1;`,
-      subscriptionId,
-    );
-
-    return rows[0];
+  private async findMessage(subscriptionId: string, transaction: Transaction): Promise<any> {
+    return this.databaseManager
+      .getSubscriptionsMessagesQueryBuilder()
+      .innerJoin('messages', 'messages.message_id', 'subscriptions_messages.message_id')
+      .column(
+        { subscriptionsMessageId: 'subscriptions_messages.id' },
+        { createdAt: 'messages.created_at' },
+        { data: 'messages.message_data' },
+      )
+      .transacting(transaction)
+      .where({
+        'subscriptions_messages.subscription_id': subscriptionId,
+        'subscriptions_messages.message_state': 'published',
+      })
+      .forUpdate()
+      .skipLocked()
+      .first();
   }
 
-  private async markSubscriptionMessageAsProcessed(subscriptionsMessageId: string): Promise<void> {
-    await this.databaseManager.executeQuery(
-      `UPDATE subscriptions_messages SET message_state = 'processed' WHERE id = $1`,
-      subscriptionsMessageId,
-    );
+  private async markSubscriptionMessageAsProcessed(
+    subscriptionsMessageId: string,
+    transactionScope: Knex.Transaction,
+  ): Promise<void> {
+    await this.databaseManager
+      .getSubscriptionsMessagesQueryBuilder()
+      .transacting(transactionScope)
+      .where('id', subscriptionsMessageId)
+      .update({ message_state: 'processed' });
   }
 
-  private async markSubscriptionMessageAsProcessedError(subscriptionsMessageId: string): Promise<void> {
-    await this.databaseManager.executeQuery(
-      `UPDATE subscriptions_messages SET message_state = 'processing_error' WHERE id = $1`,
-      subscriptionsMessageId,
-    );
+  private async markSubscriptionMessageAsProcessedError(
+    subscriptionsMessageId: string,
+    transactionScope: Knex.Transaction,
+  ): Promise<void> {
+    await this.databaseManager
+      .getSubscriptionsMessagesQueryBuilder()
+      .transacting(transactionScope)
+      .where('id', subscriptionsMessageId)
+      .update({ message_state: 'processing_error' });
   }
 }

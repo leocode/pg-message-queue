@@ -1,6 +1,6 @@
-import { Topic } from '../types';
 import { DatabaseManager } from './DatabaseManager';
 import { v4 as uuid4 } from 'uuid';
+import { Topic } from '../types/Topic';
 
 export class TopicService {
   constructor(private readonly databaseManager: DatabaseManager) {}
@@ -15,18 +15,16 @@ export class TopicService {
     return this.create(topicName);
   }
 
-  private async findByName(name: string): Promise<Topic | null> {
-    const { rows } = await this.databaseManager.executeQuery(
-      'SELECT topic_id as id, topic_name as name FROM topics WHERE topic_name = $1 LIMIT 1',
-      name,
-    );
+  private async findByName(name: string): Promise<Topic | undefined> {
+    const queryBuilder = this.databaseManager.getTopicsQueryBuilder();
 
-    return rows.length ? rows[0] : null;
+    return queryBuilder.column({ id: 'topic_id' }, { name: 'topic_name' }).where('topic_name', name).first();
   }
 
   private async create(topicName: string): Promise<Topic> {
     const id = uuid4();
-    await this.databaseManager.executeQuery('INSERT INTO topics(topic_id, topic_name) VALUES($1, $2)', id, topicName);
+
+    await this.databaseManager.getTopicsQueryBuilder().insert({ topic_id: id, topic_name: topicName });
 
     return {
       id,

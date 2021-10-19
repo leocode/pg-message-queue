@@ -22,23 +22,23 @@ export class DatabaseManager {
     }
   }
 
-  getMessagesQueryBuilder(transactionScope?: Transaction|undefined) {
+  getMessagesQueryBuilder(transactionScope?: Transaction | undefined) {
     return this.createQueryBuilder<MessageEntity>('messages', transactionScope);
   }
 
-  getSubscriptionsQueryBuilder(transactionScope?: Transaction|undefined) {
+  getSubscriptionsQueryBuilder(transactionScope?: Transaction | undefined) {
     return this.createQueryBuilder<Subscription>('subscriptions', transactionScope);
   }
 
-  getSubscriptionsMessagesQueryBuilder(transactionScope?: Transaction|undefined) {
+  getSubscriptionsMessagesQueryBuilder(transactionScope?: Transaction | undefined) {
     return this.createQueryBuilder('subscriptions_messages', transactionScope);
   }
 
-  getTopicsQueryBuilder(transactionScope?: Transaction|undefined) {
+  getTopicsQueryBuilder(transactionScope?: Transaction | undefined) {
     return this.createQueryBuilder<Topic>('topics', transactionScope);
   }
 
-  private createQueryBuilder<T>(tableName: string, transactionScope?: Transaction|undefined) {
+  private createQueryBuilder<T>(tableName: string, transactionScope?: Transaction | undefined) {
     const queryBuilder = this.knex.withSchema(this.schemaName).from<any, T>(tableName);
 
     if (transactionScope) {

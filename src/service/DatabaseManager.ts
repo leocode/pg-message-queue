@@ -7,7 +7,7 @@ import { MessageEntity } from '../types/Message';
 export class DatabaseManager {
   private readonly knex: Knex;
 
-  constructor(postgresDsn: string) {
+  constructor(postgresDsn: string, private readonly schemaName: string) {
     this.knex = knex({
       client: 'pg',
       connection: postgresDsn,
@@ -22,20 +22,30 @@ export class DatabaseManager {
     }
   }
 
-  getMessagesQueryBuilder() {
-    return this.knex.withSchema('pgpg').from<any, MessageEntity>('messages');
+  getMessagesQueryBuilder(transactionScope?: Transaction|undefined) {
+    return this.createQueryBuilder<MessageEntity>('messages', transactionScope);
   }
 
-  getSubscriptionsQueryBuilder() {
-    return this.knex.withSchema('pgpg').from<any, Subscription>('subscriptions');
+  getSubscriptionsQueryBuilder(transactionScope?: Transaction|undefined) {
+    return this.createQueryBuilder<Subscription>('subscriptions', transactionScope);
   }
 
-  getSubscriptionsMessagesQueryBuilder() {
-    return this.knex.withSchema('pgpg').from('subscriptions_messages');
+  getSubscriptionsMessagesQueryBuilder(transactionScope?: Transaction|undefined) {
+    return this.createQueryBuilder('subscriptions_messages', transactionScope);
   }
 
-  getTopicsQueryBuilder() {
-    return this.knex.withSchema('pgpg').from<any, Topic>('topics');
+  getTopicsQueryBuilder(transactionScope?: Transaction|undefined) {
+    return this.createQueryBuilder<Topic>('topics', transactionScope);
+  }
+
+  private createQueryBuilder<T>(tableName: string, transactionScope?: Transaction|undefined) {
+    const queryBuilder = this.knex.withSchema(this.schemaName).from<any, T>(tableName);
+
+    if (transactionScope) {
+      queryBuilder.transacting(transactionScope);
+    }
+
+    return queryBuilder;
   }
 
   async transactional(runner: (transactionScope: Transaction) => Promise<void>): Promise<void> {

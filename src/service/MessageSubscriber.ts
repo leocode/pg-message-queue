@@ -45,14 +45,13 @@ export class MessageSubscriber {
 
   private async findMessage(subscriptionId: string, transaction: Transaction): Promise<any> {
     return this.databaseManager
-      .getSubscriptionsMessagesQueryBuilder()
+      .getSubscriptionsMessagesQueryBuilder(transaction)
       .innerJoin('messages', 'messages.message_id', 'subscriptions_messages.message_id')
       .column(
         { subscriptionsMessageId: 'subscriptions_messages.id' },
         { createdAt: 'messages.created_at' },
         { data: 'messages.message_data' },
       )
-      .transacting(transaction)
       .where({
         'subscriptions_messages.subscription_id': subscriptionId,
         'subscriptions_messages.message_state': 'published',
@@ -67,8 +66,7 @@ export class MessageSubscriber {
     transactionScope: Knex.Transaction,
   ): Promise<void> {
     await this.databaseManager
-      .getSubscriptionsMessagesQueryBuilder()
-      .transacting(transactionScope)
+      .getSubscriptionsMessagesQueryBuilder(transactionScope)
       .where('id', subscriptionsMessageId)
       .update({ message_state: 'processed' });
   }
@@ -78,8 +76,7 @@ export class MessageSubscriber {
     transactionScope: Knex.Transaction,
   ): Promise<void> {
     await this.databaseManager
-      .getSubscriptionsMessagesQueryBuilder()
-      .transacting(transactionScope)
+      .getSubscriptionsMessagesQueryBuilder(transactionScope)
       .where('id', subscriptionsMessageId)
       .update({ message_state: 'processing_error' });
   }

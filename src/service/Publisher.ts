@@ -13,7 +13,7 @@ export class Publisher {
   async publish<T>({ id: topicId }: Topic, message: Message<T>): Promise<void> {
     await this.databaseManager.transactional(async (transactionScope) => {
       const subscriptions = await this.subscriptionService.findByTopicId(topicId);
-      const messageId = await this.createMessage<T>(topicId, message);
+      const messageId = await this.createMessage(topicId, message);
 
       for (const { id: subscriptionId } of subscriptions) {
         const id = uuid4();

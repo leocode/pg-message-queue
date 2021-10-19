@@ -5,14 +5,16 @@ import { ClientApi } from './ClientApi';
 import { Publisher } from './Publisher';
 import { MessageSubscriber } from './MessageSubscriber';
 
-export const createClient = async (postgresDsn: string): Promise<ClientApi> => {
-  const databaseManager = new DatabaseManager(postgresDsn);
+const DEFAULT_SCHEMA_NAME = 'pg_queue';
+
+export const createClient = async (postgresDsn: string, schemaName = DEFAULT_SCHEMA_NAME): Promise<ClientApi> => {
+  const databaseManager = new DatabaseManager(postgresDsn, schemaName);
 
   await databaseManager.checkConnection();
 
   const topicService = new TopicService(databaseManager);
   const subscriptionService = new SubscriptionService(databaseManager);
-  const publisher = new Publisher(databaseManager);
+  const publisher = new Publisher(subscriptionService, databaseManager);
   const messageSubscriber = new MessageSubscriber(databaseManager);
 
   return {

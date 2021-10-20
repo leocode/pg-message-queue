@@ -1,4 +1,4 @@
-import { DatabaseManager } from './DatabaseManager';
+import { DatabaseManager, Transactionless } from './DatabaseManager';
 import { v4 as uuid4 } from 'uuid';
 import { Topic } from '../types/Topic';
 
@@ -16,7 +16,7 @@ export class TopicService {
   }
 
   private async findByName(name: string): Promise<Topic | undefined> {
-    const queryBuilder = this.databaseManager.topics();
+    const queryBuilder = this.databaseManager.topics(Transactionless);
 
     return queryBuilder.column({ id: 'topic_id' }, { name: 'topic_name' }).where('topic_name', name).first();
   }
@@ -24,7 +24,7 @@ export class TopicService {
   private async create(topicName: string): Promise<Topic> {
     const id = uuid4();
 
-    await this.databaseManager.topics().insert({ topic_id: id, topic_name: topicName });
+    await this.databaseManager.topics(Transactionless).insert({ topic_id: id, topic_name: topicName });
 
     return {
       id,

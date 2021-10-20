@@ -1,4 +1,4 @@
-import { DatabaseManager } from './DatabaseManager';
+import { DatabaseManager, Transactionless } from './DatabaseManager';
 import { Topic } from '../types/Topic';
 import { Message } from '../types/Message';
 import { v4 as uuid4 } from 'uuid';
@@ -18,7 +18,7 @@ export class Publisher {
       for (const { id: subscriptionId } of subscriptions) {
         const id = uuid4();
 
-        await this.databaseManager.subscriptionsMessages().insert({
+        await this.databaseManager.subscriptionsMessages(transactionScope).insert({
           id,
           subscription_id: subscriptionId,
           message_id: messageId,
@@ -30,7 +30,7 @@ export class Publisher {
   private async createMessage<T>(topicId: string, message: Message<T>): Promise<string> {
     const messageId = uuid4();
 
-    await this.databaseManager.messages().insert({
+    await this.databaseManager.messages(Transactionless).insert({
       message_id: messageId,
       topic_id: topicId,
       message_data: message.data,

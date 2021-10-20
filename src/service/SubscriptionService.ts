@@ -1,4 +1,4 @@
-import { DatabaseManager } from './DatabaseManager';
+import { DatabaseManager, Transactionless } from './DatabaseManager';
 import { v4 as uuid4 } from 'uuid';
 import { Subscription } from '../types/Subscription';
 import { Topic } from '../types/Topic';
@@ -17,7 +17,7 @@ export class SubscriptionService {
   }
 
   private async find(name: string, { id: topic_id }: Topic): Promise<Subscription | null> {
-    const queryBuilder = this.databaseManager.subscriptions();
+    const queryBuilder = this.databaseManager.subscriptions(Transactionless);
 
     return queryBuilder
       .column({ id: 'subscription_id' }, 'name', { topicId: 'topic_id' })
@@ -30,7 +30,7 @@ export class SubscriptionService {
 
   private async create(subscriptionName: string, { id: topicId }: Topic): Promise<Subscription> {
     const subscriptionId = uuid4();
-    await this.databaseManager.subscriptions().insert({
+    await this.databaseManager.subscriptions(Transactionless).insert({
       subscription_id: subscriptionId,
       topic_id: topicId,
       name: subscriptionName,
@@ -44,7 +44,7 @@ export class SubscriptionService {
   }
 
   async findByTopicId(topicId: string): Promise<Subscription[]> {
-    const queryBuilder = this.databaseManager.subscriptions();
+    const queryBuilder = this.databaseManager.subscriptions(Transactionless);
 
     return queryBuilder.column({ id: 'subscription_id' }, 'name', { topicId: 'topic_id' }).where({
       topic_id: topicId,

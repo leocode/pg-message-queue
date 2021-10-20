@@ -22,19 +22,19 @@ export class DatabaseManager {
     }
   }
 
-  getMessagesQueryBuilder(transactionScope?: Transaction|undefined) {
+  messages(transactionScope?: Transaction|undefined) {
     return this.createQueryBuilder<MessageEntity>('messages', transactionScope);
   }
 
-  getSubscriptionsQueryBuilder(transactionScope?: Transaction|undefined) {
+  subscriptions(transactionScope?: Transaction|undefined) {
     return this.createQueryBuilder<Subscription>('subscriptions', transactionScope);
   }
 
-  getSubscriptionsMessagesQueryBuilder(transactionScope?: Transaction|undefined) {
+  subscriptionsMessages(transactionScope?: Transaction|undefined) {
     return this.createQueryBuilder('subscriptions_messages', transactionScope);
   }
 
-  getTopicsQueryBuilder(transactionScope?: Transaction|undefined) {
+  topics(transactionScope?: Transaction|undefined) {
     return this.createQueryBuilder<Topic>('topics', transactionScope);
   }
 

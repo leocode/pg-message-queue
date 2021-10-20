@@ -18,7 +18,7 @@ export class Publisher {
       for (const { id: subscriptionId } of subscriptions) {
         const id = uuid4();
 
-        await this.databaseManager.getSubscriptionsMessagesQueryBuilder().insert({
+        await this.databaseManager.subscriptionsMessages().insert({
           id,
           subscription_id: subscriptionId,
           message_id: messageId,
@@ -30,7 +30,7 @@ export class Publisher {
   private async createMessage<T>(topicId: string, message: Message<T>): Promise<string> {
     const messageId = uuid4();
 
-    await this.databaseManager.getMessagesQueryBuilder().insert({
+    await this.databaseManager.messages().insert({
       message_id: messageId,
       topic_id: topicId,
       message_data: message.data,

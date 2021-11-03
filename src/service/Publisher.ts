@@ -1,35 +1,41 @@
-import { Message, Topic } from '../types';
+import { DatabaseManager, Transactionless } from './DatabaseManager';
+import { Topic } from '../types/Topic';
+import { Message } from '../types/Message';
 import { v4 as uuid4 } from 'uuid';
-import { DatabaseManager } from './DatabaseManager';
+import { SubscriptionService } from './SubscriptionService';
 
 export class Publisher {
-  constructor(private readonly databaseManager: DatabaseManager) {}
+  constructor(
+    private readonly subscriptionService: SubscriptionService,
+    private readonly databaseManager: DatabaseManager,
+  ) {}
 
   async publish<T>({ id: topicId }: Topic, message: Message<T>): Promise<void> {
-    const messageId = uuid4();
+    await this.databaseManager.transactional(async (transactionScope) => {
+      const subscriptions = await this.subscriptionService.findByTopicId(topicId);
+      const messageId = await this.createMessage(topicId, message);
 
-    await this.databaseManager.transactional(async () => {
-      const { rows } = await this.databaseManager.executeQuery(
-        `SELECT subscription_id as "subscriptionId" FROM subscriptions WHERE topic_id = $1`,
-        topicId,
-      );
-
-      await this.databaseManager.executeQuery(
-        'INSERT INTO messages(message_id, topic_id, message_data) VALUES($1, $2, $3);',
-        messageId,
-        topicId,
-        message.data,
-      );
-
-      for (const { subscriptionId } of rows) {
+      for (const { id: subscriptionId } of subscriptions) {
         const id = uuid4();
-        await this.databaseManager.executeQuery(
-          'INSERT INTO subscriptions_messages(id, subscription_id, message_id) VALUES ($1, $2, $3);',
+
+        await this.databaseManager.subscriptionsMessages(transactionScope).insert({
           id,
-          subscriptionId,
-          messageId,
-        );
+          subscription_id: subscriptionId,
+          message_id: messageId,
+        });
       }
     });
+  }
+
+  private async createMessage<T>(topicId: string, message: Message<T>): Promise<string> {
+    const messageId = uuid4();
+
+    await this.databaseManager.messages(Transactionless).insert({
+      message_id: messageId,
+      topic_id: topicId,
+      message_data: message.data,
+    });
+
+    return messageId;
   }
 }

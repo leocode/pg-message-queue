@@ -1,4 +1,3 @@
-import { PoolConfig } from 'pg';
 import { DatabaseManager } from './DatabaseManager';
 import { TopicService } from './TopicService';
 import { SubscriptionService } from './SubscriptionService';
@@ -6,18 +5,21 @@ import { ClientApi } from './ClientApi';
 import { Publisher } from './Publisher';
 import { MessageSubscriber } from './MessageSubscriber';
 
-export const createClient = async (poolConfig: PoolConfig): Promise<ClientApi> => {
-  const databaseManager = new DatabaseManager(poolConfig);
+const DEFAULT_SCHEMA_NAME = 'pg_queue';
 
-  await databaseManager.connect();
+export const createClient = async (postgresDsn: string, schemaName = DEFAULT_SCHEMA_NAME): Promise<ClientApi> => {
+  const databaseManager = new DatabaseManager(postgresDsn, schemaName);
+
+  await databaseManager.checkConnection();
 
   const topicService = new TopicService(databaseManager);
   const subscriptionService = new SubscriptionService(databaseManager);
-  const publisher = new Publisher(databaseManager);
+  const publisher = new Publisher(subscriptionService, databaseManager);
   const messageSubscriber = new MessageSubscriber(databaseManager);
 
   return {
-    subscribe: messageSubscriber.registerHandler.bind(messageSubscriber),
+    subscribe: messageSubscriber.subscribe.bind(messageSubscriber),
+    unsubscribe: messageSubscriber.unsubscribe.bind(messageSubscriber),
     provideSubscription: subscriptionService.provideSubscription.bind(subscriptionService),
     provideTopic: topicService.provideTopic.bind(topicService),
     publish: publisher.publish.bind(publisher),

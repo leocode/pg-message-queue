@@ -1,5 +1,9 @@
 import { DatabaseManager } from './DatabaseManager';
-import { MessageHandler, Subscription } from '../types';
+import { Subscription } from '../types/Subscription';
+import { MessageHandler } from '../types/Message';
+import { Knex } from 'knex';
+import { v4 as uuid4 } from 'uuid';
+import Transaction = Knex.Transaction;
 
 const wait = async (milliseconds: number): Promise<unknown> =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -8,15 +12,25 @@ export class MessageSubscriber {
   private readonly WITH_MESSAGES_TIMEOUT = 20;
   private readonly WITHOUT_MESSAGES_TIMEOUT = 200;
 
-  constructor(private readonly databaseManager: DatabaseManager) {}
+  private readonly messageHandlerSubscriptions: Record<string, boolean>;
 
-  async registerHandler<T>({ id: subscriptionId }: Subscription, handler: MessageHandler<T>): Promise<void> {
+  constructor(private readonly databaseManager: DatabaseManager) {
+    this.messageHandlerSubscriptions = {};
+  }
+
+  async subscribe<T>({ id: subscriptionId }: Subscription, handler: MessageHandler<T>): Promise<string> {
     let timeout: number;
+    const handlerId = uuid4();
+    this.messageHandlerSubscriptions[handlerId] = true;
 
     const runner = async () => {
       while (true) {
-        await this.databaseManager.transactional(async () => {
-          const message = await this.findMessage(subscriptionId);
+        if (!this.messageHandlerSubscriptions[handlerId]) {
+          break;
+        }
+
+        await this.databaseManager.transactional(async (transactionScope) => {
+          const message = await this.findMessage(subscriptionId, transactionScope);
 
           if (!message) {
             timeout = this.WITHOUT_MESSAGES_TIMEOUT;
@@ -27,9 +41,9 @@ export class MessageSubscriber {
 
           try {
             await handler(message);
-            await this.markSubscriptionMessageAsProcessed(message.subscriptionsMessageId);
+            await this.markSubscriptionMessageAsProcessed(message.subscriptionsMessageId, transactionScope);
           } catch (error) {
-            await this.markSubscriptionMessageAsProcessedError(message.subscriptionsMessageId);
+            await this.markSubscriptionMessageAsProcessedError(message.subscriptionsMessageId, transactionScope);
           }
         });
 
@@ -37,36 +51,54 @@ export class MessageSubscriber {
       }
     };
 
-    setTimeout(runner, this.WITH_MESSAGES_TIMEOUT);
+    setImmediate(runner);
+
+    return handlerId;
   }
 
-  private async findMessage(subscriptionId: string): Promise<any> {
-    const { rows } = await this.databaseManager.executeQuery(
-      `
-          SELECT sm.id as "subscriptionsMessageId", m.*
-          FROM subscriptions_messages sm
-                   INNER JOIN messages m on sm.message_id = m.message_id
-          WHERE sm.subscription_id = $1
-            AND sm.message_state = 'published'
-              FOR UPDATE SKIP LOCKED
-          LIMIT 1;`,
-      subscriptionId,
-    );
+  public unsubscribe(handlerId: string): void {
+    if (!this.messageHandlerSubscriptions[handlerId]) {
+      return;
+    }
 
-    return rows[0];
+    this.messageHandlerSubscriptions[handlerId] = false;
   }
 
-  private async markSubscriptionMessageAsProcessed(subscriptionsMessageId: string): Promise<void> {
-    await this.databaseManager.executeQuery(
-      `UPDATE subscriptions_messages SET message_state = 'processed' WHERE id = $1`,
-      subscriptionsMessageId,
-    );
+  private async findMessage(subscriptionId: string, transaction: Transaction): Promise<any> {
+    return this.databaseManager
+      .subscriptionsMessages(transaction)
+      .innerJoin('messages', 'messages.message_id', 'subscriptions_messages.message_id')
+      .column(
+        { subscriptionsMessageId: 'subscriptions_messages.id' },
+        { createdAt: 'messages.created_at' },
+        { data: 'messages.message_data' },
+      )
+      .where({
+        'subscriptions_messages.subscription_id': subscriptionId,
+        'subscriptions_messages.message_state': 'published',
+      })
+      .forUpdate()
+      .skipLocked()
+      .first();
   }
 
-  private async markSubscriptionMessageAsProcessedError(subscriptionsMessageId: string): Promise<void> {
-    await this.databaseManager.executeQuery(
-      `UPDATE subscriptions_messages SET message_state = 'processing_error' WHERE id = $1`,
-      subscriptionsMessageId,
-    );
+  private async markSubscriptionMessageAsProcessed(
+    subscriptionsMessageId: string,
+    transactionScope: Knex.Transaction,
+  ): Promise<void> {
+    await this.databaseManager
+      .subscriptionsMessages(transactionScope)
+      .where('id', subscriptionsMessageId)
+      .update({ message_state: 'processed' });
+  }
+
+  private async markSubscriptionMessageAsProcessedError(
+    subscriptionsMessageId: string,
+    transactionScope: Knex.Transaction,
+  ): Promise<void> {
+    await this.databaseManager
+      .subscriptionsMessages(transactionScope)
+      .where('id', subscriptionsMessageId)
+      .update({ message_state: 'processing_error' });
   }
 }

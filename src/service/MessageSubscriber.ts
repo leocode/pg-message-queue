@@ -2,6 +2,7 @@ import { DatabaseManager } from './DatabaseManager';
 import { Subscription } from '../types/Subscription';
 import { MessageHandler } from '../types/Message';
 import { Knex } from 'knex';
+import { v4 as uuid4 } from 'uuid';
 import Transaction = Knex.Transaction;
 
 const wait = async (milliseconds: number): Promise<unknown> =>
@@ -11,13 +12,23 @@ export class MessageSubscriber {
   private readonly WITH_MESSAGES_TIMEOUT = 20;
   private readonly WITHOUT_MESSAGES_TIMEOUT = 200;
 
-  constructor(private readonly databaseManager: DatabaseManager) {}
+  private readonly messageHandlerSubscriptions: Record<string, boolean>;
 
-  async registerHandler<T>({ id: subscriptionId }: Subscription, handler: MessageHandler<T>): Promise<void> {
+  constructor(private readonly databaseManager: DatabaseManager) {
+    this.messageHandlerSubscriptions = {};
+  }
+
+  async subscribe<T>({ id: subscriptionId }: Subscription, handler: MessageHandler<T>): Promise<string> {
     let timeout: number;
+    const handlerId = uuid4();
+    this.messageHandlerSubscriptions[handlerId] = true;
 
     const runner = async () => {
       while (true) {
+        if (!this.messageHandlerSubscriptions[handlerId]) {
+          break;
+        }
+
         await this.databaseManager.transactional(async (transactionScope) => {
           const message = await this.findMessage(subscriptionId, transactionScope);
 
@@ -40,7 +51,17 @@ export class MessageSubscriber {
       }
     };
 
-    setTimeout(runner, this.WITH_MESSAGES_TIMEOUT);
+    setImmediate(runner);
+
+    return handlerId;
+  }
+
+  public unsubscribe(handlerId: string): void {
+    if (!this.messageHandlerSubscriptions[handlerId]) {
+      return;
+    }
+
+    this.messageHandlerSubscriptions[handlerId] = false;
   }
 
   private async findMessage(subscriptionId: string, transaction: Transaction): Promise<any> {

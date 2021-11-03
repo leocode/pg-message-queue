@@ -18,7 +18,8 @@ export const createClient = async (postgresDsn: string, schemaName = DEFAULT_SCH
   const messageSubscriber = new MessageSubscriber(databaseManager);
 
   return {
-    subscribe: messageSubscriber.registerHandler.bind(messageSubscriber),
+    subscribe: messageSubscriber.subscribe.bind(messageSubscriber),
+    unsubscribe: messageSubscriber.unsubscribe.bind(messageSubscriber),
     provideSubscription: subscriptionService.provideSubscription.bind(subscriptionService),
     provideTopic: topicService.provideTopic.bind(topicService),
     publish: publisher.publish.bind(publisher),

@@ -1,6 +1,6 @@
 import { createClient } from './service/clientFactory';
 
-type Order = {
+export type Order = {
   products: number[];
   userId: number;
   messageId: number;

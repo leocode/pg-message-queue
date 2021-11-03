@@ -1,8 +1,13 @@
 import { Knex, knex } from 'knex';
 import { Topic } from '../types/Topic';
 import { Subscription } from '../types/Subscription';
-import Transaction = Knex.Transaction;
+import KnexTransaction = Knex.Transaction;
 import { MessageEntity } from '../types/Message';
+
+export const Transactionless = null;
+export type Transaction = KnexTransaction | null;
+
+const isTransactional = (transactional: Transaction): transactional is KnexTransaction => transactional !== null;
 
 export class DatabaseManager {
   private readonly knex: Knex;
@@ -22,34 +27,34 @@ export class DatabaseManager {
     }
   }
 
-  getMessagesQueryBuilder(transactionScope?: Transaction | undefined) {
+  messages(transactionScope: Transaction) {
     return this.createQueryBuilder<MessageEntity>('messages', transactionScope);
   }
 
-  getSubscriptionsQueryBuilder(transactionScope?: Transaction | undefined) {
+  subscriptions(transactionScope: Transaction) {
     return this.createQueryBuilder<Subscription>('subscriptions', transactionScope);
   }
 
-  getSubscriptionsMessagesQueryBuilder(transactionScope?: Transaction | undefined) {
+  subscriptionsMessages(transactionScope: Transaction) {
     return this.createQueryBuilder('subscriptions_messages', transactionScope);
   }
 
-  getTopicsQueryBuilder(transactionScope?: Transaction | undefined) {
+  topics(transactionScope: Transaction) {
     return this.createQueryBuilder<Topic>('topics', transactionScope);
   }
 
-  private createQueryBuilder<T>(tableName: string, transactionScope?: Transaction | undefined) {
+  private createQueryBuilder<T>(tableName: string, transactionScope: Transaction) {
     const queryBuilder = this.knex.withSchema(this.schemaName).from<any, T>(tableName);
 
-    if (transactionScope) {
+    if (isTransactional(transactionScope)) {
       queryBuilder.transacting(transactionScope);
     }
 
     return queryBuilder;
   }
 
-  async transactional(runner: (transactionScope: Transaction) => Promise<void>): Promise<void> {
-    await this.knex.transaction(async (transactionScope: Transaction) => {
+  async transactional(runner: (transactionScope: KnexTransaction) => Promise<void>): Promise<void> {
+    await this.knex.transaction(async (transactionScope: KnexTransaction) => {
       await runner(transactionScope);
     });
   }

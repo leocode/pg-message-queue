@@ -1,7 +1,5 @@
 create schema queue;
-
-set
-search_path TO queue;
+set search_path TO queue;
 
 create type message_state as enum ('published', 'processed', 'processing_error');
 

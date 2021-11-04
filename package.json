@@ -12,13 +12,17 @@
     "lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
     "demo:publisher": "node dist/demoPublisher.js",
     "demo:subscriber": "node dist/demoSubscriber.js",
-    "test": "jest --watchAll --no-cache"
+    "test": "jest --runInBand --watchAll --no-cache"
   },
   "jest": {
     "preset": "ts-jest",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "setupFilesAfterEnv": [
+      "./test/setup.ts"
+    ]
   },
   "devDependencies": {
+    "@types/jest": "^27.0.2",
     "@types/pg": "^8.6.1",
     "@types/uuid": "^8.3.1",
     "@typescript-eslint/eslint-plugin": "^5.0.0",

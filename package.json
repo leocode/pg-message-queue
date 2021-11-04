@@ -11,7 +11,12 @@
     "ci:lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet",
     "lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
     "demo:publisher": "node dist/demoPublisher.js",
-    "demo:subscriber": "node dist/demoSubscriber.js"
+    "demo:subscriber": "node dist/demoSubscriber.js",
+    "test": "jest --watchAll --no-cache"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node"
   },
   "devDependencies": {
     "@types/pg": "^8.6.1",
@@ -21,8 +26,10 @@
     "eslint": "^8.0.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "jest": "^27.3.1",
     "prettier": "^2.4.1",
     "rimraf": "^3.0.2",
+    "ts-jest": "^27.0.7",
     "typescript": "^4.4.3"
   },
   "dependencies": {

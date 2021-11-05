@@ -1,32 +1,32 @@
-import { POSTGRES_DSN, POSTGRES_SCHEMA, TestOrder } from '../../test/helper';
 import { DatabaseManager, Transactionless } from './DatabaseManager';
 import { SubscriptionService } from './SubscriptionService';
-import { TopicService } from './TopicService';
 import { Publisher } from './Publisher';
+import { createSubscription, createTopic, POSTGRES_SCHEMA, POSTGRES_DSN } from '../../test/database';
+import { Order } from '../../test/types';
 
 describe('Publisher', () => {
   let databaseManager: DatabaseManager;
   let subscriptionService: SubscriptionService;
-  let topicService: TopicService;
   let publisher: Publisher;
 
   beforeAll(async () => {
     databaseManager = new DatabaseManager(POSTGRES_DSN, POSTGRES_SCHEMA);
-    topicService = new TopicService(databaseManager);
     subscriptionService = new SubscriptionService(databaseManager);
     publisher = new Publisher(subscriptionService, databaseManager);
   });
 
   it('should create subscription message with message_state "published"', async () => {
-    const topic = await topicService.provideTopic('test.message_state.published');
-    await subscriptionService.provideSubscription(topic, 'test.check');
+    const messageData = {
+      products: [1, 2, 3],
+      userId: 10,
+      messageId: 10,
+    };
 
-    await publisher.publish<TestOrder>(topic, {
-      data: {
-        products: [1, 2, 3],
-        userId: 10,
-        messageId: 10,
-      },
+    const topic = await createTopic();
+    await createSubscription(topic.id);
+
+    await publisher.publish<Order>(topic, {
+      data: messageData,
       headers: {},
     });
 
@@ -37,16 +37,17 @@ describe('Publisher', () => {
       .first();
 
     expect(subscriptionMessage.message_state).toEqual('published');
+    expect(subscriptionMessage.message_data).toEqual(messageData);
   });
 
   it('should create multiple subscription messages with message state "published" when multiple subscribers', async () => {
-    const topic = await topicService.provideTopic('test.message_state.published');
+    const topic = await createTopic();
 
-    await subscriptionService.provideSubscription(topic, 'test.check_1');
-    await subscriptionService.provideSubscription(topic, 'test.check_2');
-    await subscriptionService.provideSubscription(topic, 'test.check_3');
+    await createSubscription(topic.id);
+    await createSubscription(topic.id);
+    await createSubscription(topic.id);
 
-    await publisher.publish<TestOrder>(topic, {
+    await publisher.publish<Order>(topic, {
       data: {
         products: [1, 2, 3],
         userId: 10,

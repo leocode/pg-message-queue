@@ -1,18 +1,18 @@
-import { POSTGRES_DSN, POSTGRES_SCHEMA } from './helper';
-import { DatabaseManager } from '../src/service/DatabaseManager';
-
-const dm = new DatabaseManager(POSTGRES_DSN, POSTGRES_SCHEMA);
+import { testDatabaseManager } from './database';
 
 const clearDb = async () => {
-  await dm.transactional(async (transactionScope) => {
-    await dm.subscriptionsMessages(transactionScope).delete();
-    await dm.subscriptions(transactionScope).delete();
-    await dm.messages(transactionScope).delete();
-    await dm.topics(transactionScope).delete();
+  await testDatabaseManager.transactional(async (transactionScope) => {
+    await testDatabaseManager.subscriptionsMessages(transactionScope).delete();
+    await testDatabaseManager.subscriptions(transactionScope).delete();
+    await testDatabaseManager.messages(transactionScope).delete();
+    await testDatabaseManager.topics(transactionScope).delete();
   });
 };
 
-beforeEach(async () => {
+beforeEach(() => {
   jest.clearAllMocks();
+});
+
+afterAll(async () => {
   await clearDb();
 });

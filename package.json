@@ -12,7 +12,7 @@
     "lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
     "demo:publisher": "node dist/demoPublisher.js",
     "demo:subscriber": "node dist/demoSubscriber.js",
-    "test": "jest --runInBand --watchAll --no-cache"
+    "test": "jest --runInBand --collectCoverage --watchAll --no-cache"
   },
   "jest": {
     "preset": "ts-jest",

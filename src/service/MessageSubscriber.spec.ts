@@ -24,18 +24,16 @@ describe('Message Subscriber', () => {
 
     const topic = await createTopic();
     const subscription = await createSubscription(topic.id);
-    const message = await createMessage(topic.id, messageData);
 
+    await messageSubscriber.subscribe<Order>(subscription, jest.fn().mockResolvedValue({}));
+
+    const message = await createMessage(topic.id, messageData);
     await createSubscriptionMessage(subscription.id, {
       message_id: message.message_id,
       message_state: 'published',
     });
 
-    const handlerId = await messageSubscriber.subscribe<Order>(subscription, jest.fn().mockResolvedValue({}));
-
-    await new Promise((resolve) => setTimeout(resolve, 500));
-
-    messageSubscriber.unsubscribe(handlerId);
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     const messageFound = await databaseManager
       .subscriptionsMessages(Transactionless)
@@ -51,18 +49,15 @@ describe('Message Subscriber', () => {
     const topic = await createTopic();
     const subscription = await createSubscription(topic.id);
 
-    const message = await createMessage(topic.id, messageData);
+    await messageSubscriber.subscribe<Order>(subscription, jest.fn().mockRejectedValue({}));
 
+    const message = await createMessage(topic.id, messageData);
     await createSubscriptionMessage(subscription.id, {
       message_id: message.message_id,
       message_state: 'published',
     });
 
-    const handlerId = await messageSubscriber.subscribe<Order>(subscription, jest.fn().mockRejectedValue({}));
-
     await new Promise((resolve) => setTimeout(resolve, 500));
-
-    messageSubscriber.unsubscribe(handlerId);
 
     const messageFound = await databaseManager
       .subscriptionsMessages(Transactionless)
@@ -70,5 +65,31 @@ describe('Message Subscriber', () => {
       .first();
 
     expect(messageFound.message_state).toEqual('processing_error');
+  });
+
+  it('Should unsubscribe and not consume message', async () => {
+    const messageData = { prop1: 1, prop2: 2 };
+
+    const topic = await createTopic();
+    const subscription = await createSubscription(topic.id);
+
+    const handlerId = await messageSubscriber.subscribe<Order>(subscription, jest.fn().mockRejectedValue({}));
+
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
+    messageSubscriber.unsubscribe(handlerId);
+
+    const message = await createMessage(topic.id, messageData);
+    await createSubscriptionMessage(subscription.id, {
+      message_id: message.message_id,
+      message_state: 'published',
+    });
+
+    const messageFound = await databaseManager
+      .subscriptionsMessages(Transactionless)
+      .where('message_id', message.message_id)
+      .first();
+
+    expect(messageFound.message_state).toEqual('published');
   });
 });

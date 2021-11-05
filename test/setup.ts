@@ -15,4 +15,5 @@ beforeEach(() => {
 
 afterAll(async () => {
   await clearDb();
+  await testDatabaseManager.destroyConnection();
 });

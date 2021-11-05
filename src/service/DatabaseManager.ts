@@ -27,6 +27,10 @@ export class DatabaseManager {
     }
   }
 
+  async destroyConnection(): Promise<void> {
+    await this.knex.destroy();
+  }
+
   messages(transactionScope: Transaction) {
     return this.createQueryBuilder<MessageEntity>('messages', transactionScope);
   }

@@ -1,16 +1,14 @@
-import { ClientApi } from '../../dist/service/ClientApi';
 import { createClient } from '../../src';
 import { POSTGRES_DSN, testDatabaseManager } from '../database';
 import { Order } from '../../src/demoPublisher';
-import { Transactionless } from '../../dist/service/DatabaseManager';
+import { ClientApi } from '../../src/service/ClientApi';
+import { Transactionless } from '../../src/service/DatabaseManager';
 
 describe('publisher-subscriber e2e', () => {
   let publisher: ClientApi;
-  let subscriber: ClientApi;
 
   beforeAll(async () => {
     publisher = await createClient(POSTGRES_DSN);
-    subscriber = await createClient(POSTGRES_DSN);
   });
 
   it('should publish and consume message', async () => {
@@ -20,13 +18,7 @@ describe('publisher-subscriber e2e', () => {
       messageId: 10,
     };
 
-    const messageHandler = jest.fn();
-    const subscriberTopic = await subscriber.provideTopic('test.topic');
-    const subscriberSubscription = await subscriber.provideSubscription(subscriberTopic, 'test.subscription');
-
-    await subscriber.subscribe<Order>(subscriberSubscription, messageHandler.mockResolvedValue({}));
-
-    const publisherTopic = await publisher.provideTopic('test.topic');
+    const publisherTopic = await publisher.provideTopic('topic.test');
 
     await publisher.publish<Order>(publisherTopic, {
       data: messageData,
@@ -39,7 +31,7 @@ describe('publisher-subscriber e2e', () => {
       .subscriptionsMessages(Transactionless)
       .innerJoin('messages', 'messages.message_id', 'subscriptions_messages.message_id')
       .where({
-        'subscriptions_messages.subscription_id': subscriberSubscription.id,
+        'messages.topic_id': publisherTopic.id,
       })
       .first();
 

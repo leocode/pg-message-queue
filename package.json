@@ -7,12 +7,14 @@
   "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "ci:lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet",
     "lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
     "demo:publisher": "node dist/demoPublisher.js",
     "demo:subscriber": "node dist/demoSubscriber.js",
-    "test": "jest --runInBand --collectCoverage --watchAll --no-cache"
+    "test": "jest --silent --runInBand --collectCoverage --forceExit --no-cache",
+    "test:integration": "npm run test -- --testMatch **/*.spec.ts",
+    "test:e2e": "npm run test -- --testMatch **/*.spec.e2e.ts"
   },
   "jest": {
     "preset": "ts-jest",

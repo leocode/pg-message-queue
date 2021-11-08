@@ -1,8 +1,11 @@
 #!/bin/sh
 
-docker-compose build app
-docker-compose run app node dist/test/e2e/subscriber.js &
+docker-compose up --remove-orphans -d db
+
+docker-compose build test
+
+docker-compose run -d test node dist/test/e2e/subscriber.js
 
 npm run test:e2e
 
-docker-compose down app
+docker-compose down test

@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.json",
     "ci:lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet",
     "lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
     "demo:publisher": "node dist/demoPublisher.js",

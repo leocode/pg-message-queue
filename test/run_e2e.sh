@@ -4,7 +4,7 @@ docker-compose up --remove-orphans -d db
 
 docker-compose build test
 
-docker-compose run -d test node dist/test/e2e/subscriber.js
+docker-compose run -d test node test/e2e/subscriber.js
 
 npm run test:e2e
 

@@ -26,6 +26,8 @@ services:
       - ./src:/app/src
       - ./test:/app/test
       - node_modules:/app/node_modules
+    environment:
+      TEST_CONNECTION_STRING: "postgres://postgres:postgres@database:5432/pg_queue_poc"
 
 volumes:
   node_modules:

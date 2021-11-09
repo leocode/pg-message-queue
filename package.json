@@ -14,7 +14,8 @@
     "demo:subscriber": "node dist/demoSubscriber.js",
     "test": "jest --silent --runInBand --collectCoverage --forceExit --no-cache",
     "test:integration": "npm run test -- --testMatch **/*.spec.ts",
-    "test:e2e": "npm run test -- --testMatch **/*.spec.e2e.ts"
+    "test:e2e": "npm run test -- --testMatch **/*.spec.e2e.ts",
+    "test:perf": "cd test/perf && node init.js"
   },
   "jest": {
     "preset": "ts-jest",

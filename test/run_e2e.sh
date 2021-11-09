@@ -8,4 +8,4 @@ docker-compose run -d test node test/e2e/subscriber.js
 
 npm run test:e2e
 
-docker-compose down test
+docker-compose down

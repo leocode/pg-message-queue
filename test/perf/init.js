@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { spawn } = require('child_process');
-const { resetDbAndClose, getProcessedMessagesCount } = require('./db');
+const DbManager = require('./db');
+
+const POSTGRES_DSN = 'postgres://postgres:postgres@127.0.0.1:5432/pg_queue_poc';
 
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -14,19 +16,21 @@ const measureFuncTime = async (cb) => {
 };
 
 (async () => {
+  const dbManager = new DbManager(POSTGRES_DSN);
+
   const topicName = 'topic.test';
   const subscriptionName = 'subscription.test';
   const messagesToProcess = 500;
 
-  const subscriberChild = spawn('node', ['./subscriber.js', topicName, subscriptionName]);
+  const subscriberChild = spawn('node', ['./subscriber.js', POSTGRES_DSN, topicName, subscriptionName]);
   await wait(200);
-  const publisherChild = spawn('node', ['./publisher.js', topicName, messagesToProcess]);
+  const publisherChild = spawn('node', ['./publisher.js', POSTGRES_DSN, topicName, messagesToProcess]);
 
   await measureFuncTime(async () => {
     let processedCount;
 
     do {
-      processedCount = await getProcessedMessagesCount();
+      processedCount = await dbManager.getProcessedMessagesCount();
       await wait(100);
       console.log(`Processed messages ${processedCount}`);
     } while (processedCount != messagesToProcess);
@@ -35,5 +39,5 @@ const measureFuncTime = async (cb) => {
   subscriberChild.kill();
   publisherChild.kill();
 
-  await resetDbAndClose();
+  await dbManager.resetDbAndClose();
 })();

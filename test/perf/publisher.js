@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { createClient } = require('../../dist/service/clientFactory');
-const [TOPIC_NAME, MESSAGES_COUNT] = process.argv.slice(2);
+const [POSTGRES_DSN, TOPIC_NAME, MESSAGES_COUNT] = process.argv.slice(2);
 
 (async () => {
-  const client = await createClient('postgres://postgres:postgres@127.0.0.1:5432/pg_queue_poc');
+  const client = await createClient(POSTGRES_DSN);
 
   const topic = await client.provideTopic(TOPIC_NAME);
 

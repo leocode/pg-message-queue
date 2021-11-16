@@ -5,7 +5,7 @@ import { ClientApi } from './ClientApi';
 import { Publisher } from './Publisher';
 import { MessageSubscriber } from './MessageSubscriber';
 
-const DEFAULT_SCHEMA_NAME = 'pg_queue';
+const DEFAULT_SCHEMA_NAME = 'queue';
 
 export const createClient = async (postgresDsn: string, schemaName = DEFAULT_SCHEMA_NAME): Promise<ClientApi> => {
   const databaseManager = new DatabaseManager(postgresDsn, schemaName);

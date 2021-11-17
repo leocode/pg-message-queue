@@ -9,6 +9,7 @@ import {
   POSTGRES_SCHEMA,
 } from '../../test/database';
 import { Order } from '../../test/types';
+import { SubscriptionMessageState } from '../types/SubscriptionMessage';
 
 describe('Message Subscriber', () => {
   let databaseManager: DatabaseManager;
@@ -30,7 +31,7 @@ describe('Message Subscriber', () => {
     const message = await createMessage(topic.id, messageData);
     await createSubscriptionMessage(subscription.id, {
       message_id: message.message_id,
-      message_state: 'published',
+      message_state: SubscriptionMessageState.Published,
     });
 
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -40,7 +41,7 @@ describe('Message Subscriber', () => {
       .where('message_id', message.message_id)
       .first();
 
-    expect(messageFound.message_state).toEqual('processed');
+    expect(messageFound.message_state).toEqual(SubscriptionMessageState.Processed);
   });
 
   it('Should consume message and set message_state to "processing_error"', async () => {
@@ -54,7 +55,7 @@ describe('Message Subscriber', () => {
     const message = await createMessage(topic.id, messageData);
     await createSubscriptionMessage(subscription.id, {
       message_id: message.message_id,
-      message_state: 'published',
+      message_state: SubscriptionMessageState.Published,
     });
 
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -64,7 +65,7 @@ describe('Message Subscriber', () => {
       .where('message_id', message.message_id)
       .first();
 
-    expect(messageFound.message_state).toEqual('processing_error');
+    expect(messageFound.message_state).toEqual(SubscriptionMessageState.ProcessingError);
   });
 
   it('Should unsubscribe and not consume message', async () => {
@@ -82,7 +83,7 @@ describe('Message Subscriber', () => {
     const message = await createMessage(topic.id, messageData);
     await createSubscriptionMessage(subscription.id, {
       message_id: message.message_id,
-      message_state: 'published',
+      message_state: SubscriptionMessageState.Published,
     });
 
     const messageFound = await databaseManager
@@ -90,6 +91,6 @@ describe('Message Subscriber', () => {
       .where('message_id', message.message_id)
       .first();
 
-    expect(messageFound.message_state).toEqual('published');
+    expect(messageFound.message_state).toEqual(SubscriptionMessageState.Published);
   });
 });

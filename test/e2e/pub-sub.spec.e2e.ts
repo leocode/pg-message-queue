@@ -3,6 +3,7 @@ import { POSTGRES_DSN, testDatabaseManager } from '../database';
 import { Order } from '../../src/demoPublisher';
 import { ClientApi } from '../../src/service/ClientApi';
 import { Transactionless } from '../../src/service/DatabaseManager';
+import { SubscriptionMessageState } from '../../src/types/SubscriptionMessage';
 
 describe('publisher-subscriber e2e', () => {
   let publisher: ClientApi;
@@ -35,7 +36,7 @@ describe('publisher-subscriber e2e', () => {
       })
       .first();
 
-    expect(receivedMessage.message_state).toEqual('processed');
+    expect(receivedMessage.message_state).toEqual(SubscriptionMessageState.Processed);
     expect(receivedMessage.message_data).toEqual(messageData);
   });
 });

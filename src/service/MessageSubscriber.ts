@@ -4,6 +4,7 @@ import { MessageHandler } from '../types/Message';
 import { Knex } from 'knex';
 import { v4 as uuid4 } from 'uuid';
 import Transaction = Knex.Transaction;
+import { SubscriptionMessageState } from '../types/SubscriptionMessage';
 
 const wait = async (milliseconds: number): Promise<unknown> =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -75,7 +76,7 @@ export class MessageSubscriber {
       )
       .where({
         'subscriptions_messages.subscription_id': subscriptionId,
-        'subscriptions_messages.message_state': 'published',
+        'subscriptions_messages.message_state': SubscriptionMessageState.Published,
       })
       .forUpdate()
       .skipLocked()
@@ -89,7 +90,7 @@ export class MessageSubscriber {
     await this.databaseManager
       .subscriptionsMessages(transactionScope)
       .where('id', subscriptionsMessageId)
-      .update({ message_state: 'processed' });
+      .update({ message_state: SubscriptionMessageState.Processed });
   }
 
   private async markSubscriptionMessageAsProcessedError(
@@ -99,6 +100,6 @@ export class MessageSubscriber {
     await this.databaseManager
       .subscriptionsMessages(transactionScope)
       .where('id', subscriptionsMessageId)
-      .update({ message_state: 'processing_error' });
+      .update({ message_state: SubscriptionMessageState.ProcessingError });
   }
 }

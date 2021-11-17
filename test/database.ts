@@ -51,6 +51,7 @@ export const createMessage = async (
     message_id: id,
     message_data: messageData,
     topic_id: topicId,
+    priority: 1000,
   });
 
   return {

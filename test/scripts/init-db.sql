@@ -19,7 +19,8 @@ CREATE TABLE messages (message_id UUID NOT NULL CONSTRAINT message_pk PRIMARY KE
                        topic_id UUID NOT NULL,
                        created_at TIMESTAMP DEFAULT now() NOT NULL,
                        last_updated_at TIMESTAMP,
-                       message_data JSON NOT NULL);
+                       message_data JSON NOT NULL,
+                       priority smallint NOT NULL);
 
 
 CREATE UNIQUE INDEX message_message_id_uindex ON messages (message_id);

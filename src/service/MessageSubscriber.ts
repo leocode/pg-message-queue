@@ -80,6 +80,7 @@ export class MessageSubscriber {
       })
       .forUpdate()
       .skipLocked()
+      .orderBy('messages.priority', 'desc')
       .first();
   }
 

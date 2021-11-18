@@ -33,7 +33,7 @@ const measureFuncTime = async (cb) => {
       processedCount = await dbManager.getProcessedMessagesCount();
       await wait(100);
       console.log(`Processed messages ${processedCount}`);
-    } while (processedCount != messagesToProcess);
+    } while (processedCount < messagesToProcess);
   });
 
   subscriberChild.kill();

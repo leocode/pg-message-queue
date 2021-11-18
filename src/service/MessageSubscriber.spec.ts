@@ -26,7 +26,7 @@ describe('Message Subscriber', () => {
     const topic = await createTopic();
     const subscription = await createSubscription(topic.id);
 
-    await messageSubscriber.subscribe<Order>(subscription, jest.fn().mockResolvedValue({}));
+    await messageSubscriber.subscribe<Order>(subscription, {}, jest.fn().mockResolvedValue({}));
 
     const message = await createMessage(topic.id, messageData);
     await createSubscriptionMessage(subscription.id, {
@@ -50,7 +50,7 @@ describe('Message Subscriber', () => {
     const topic = await createTopic();
     const subscription = await createSubscription(topic.id);
 
-    await messageSubscriber.subscribe<Order>(subscription, jest.fn().mockRejectedValue({}));
+    await messageSubscriber.subscribe<Order>(subscription, {}, jest.fn().mockRejectedValue({}));
 
     const message = await createMessage(topic.id, messageData);
     await createSubscriptionMessage(subscription.id, {
@@ -74,7 +74,7 @@ describe('Message Subscriber', () => {
     const topic = await createTopic();
     const subscription = await createSubscription(topic.id);
 
-    const handlerId = await messageSubscriber.subscribe<Order>(subscription, jest.fn().mockRejectedValue({}));
+    const handlerId = await messageSubscriber.subscribe<Order>(subscription, {}, jest.fn().mockRejectedValue({}));
 
     await new Promise((resolve) => setTimeout(resolve, 500));
 

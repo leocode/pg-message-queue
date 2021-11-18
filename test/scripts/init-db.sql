@@ -41,7 +41,21 @@ CREATE TABLE subscriptions_messages (id UUID NOT NULL CONSTRAINT subscriptions_m
                                      message_id UUID NOT NULL,
                                      message_state message_state DEFAULT 'published'::message_state NOT NULL,
                                      retries smallint NOT NULL DEFAULT 0,
-                                     next_retry_at TIMESTAMP);
+                                     next_retry_at TIMESTAMP,
+                                     last_updated_at TIMESTAMP);
 
 
 CREATE UNIQUE INDEX subscriptions_messages_id_uindex ON subscriptions_messages (id);
+
+CREATE FUNCTION update_last_updated_at()
+    RETURNS TRIGGER AS $$
+BEGIN
+    NEW.last_updated_at = now();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_last_updated_at_subscriptions_messages
+    BEFORE UPDATE ON subscriptions_messages
+    FOR EACH ROW
+EXECUTE PROCEDURE update_last_updated_at ();

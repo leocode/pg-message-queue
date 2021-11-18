@@ -57,7 +57,7 @@ export class MessageSubscriber {
               return await this.markSubscriptionMessageAsProcessedErrorRetry(
                 message.subscriptionsMessageId,
                 message.retries,
-                options.retryPolicy?.getNextRetry(message),
+                options.retryPolicy?.getNextRetryTime(message),
                 transactionScope,
               );
             }

@@ -12,7 +12,7 @@ export class RetryPolicy {
     return this.options.maxRetries > message.retries;
   }
 
-  getNextRetry(message: { retries: number }): number {
+  getNextRetryTime(message: { retries: number }): number {
     const now = Date.now();
 
     switch (this.options.strategy) {

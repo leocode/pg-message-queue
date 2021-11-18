@@ -124,7 +124,7 @@ export class MessageSubscriber {
   ): Promise<void> {
     await this.databaseManager.subscriptionsMessages(transactionScope).where('id', subscriptionsMessageId).update({
       message_state: SubscriptionMessageState.Processed,
-      // next_retry_at: null,
+      next_retry_at: null,
     });
   }
 
@@ -134,7 +134,7 @@ export class MessageSubscriber {
   ): Promise<void> {
     await this.databaseManager.subscriptionsMessages(transactionScope).where('id', subscriptionsMessageId).update({
       message_state: SubscriptionMessageState.ProcessingError,
-      // next_retry_at: null,
+      next_retry_at: null,
     });
   }
 

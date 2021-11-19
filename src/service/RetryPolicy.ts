@@ -8,7 +8,7 @@ export interface RetryPolicyOptions {
 export class RetryPolicy {
   constructor(private readonly options: RetryPolicyOptions) {}
 
-  shouldRetryMessage(message: { retries: number }) {
+  shouldRetryMessage(message: { retries: number }): boolean {
     return this.options.maxRetries > message.retries;
   }
 

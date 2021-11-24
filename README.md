@@ -1,6 +1,9 @@
-# PG Message Queue 🐘🛒🛒
+# PG Message Queue (proof of concept, work in progress)
+
 Simple MQ/PubSub implementation based on PostgreSQL.
+
 ## Install 
+
 ```
 npm i -s ...
 ```
@@ -8,8 +11,11 @@ or
 ```
 yarn add ...
 ```
+
 ## Usage
+
 ### Publisher
+
 ```typescript
 import { createClient } from 'pg-queue';
 
@@ -38,7 +44,9 @@ type Order = {
   });
 })();
 ```
+
 ### Consumer
+
 ```typescript
 import { createClient } from 'pg-queue';
 
@@ -64,6 +72,7 @@ type Order = {
   });
 })();
 ```
+
 ## TODO/Ideas
 
 1. Deadletter

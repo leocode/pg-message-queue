@@ -4,7 +4,7 @@ import { SubscriptionService } from './SubscriptionService';
 import { ClientApi } from './ClientApi';
 import { Publisher } from './Publisher';
 import { MessageSubscriber } from './MessageSubscriber';
-import { RetryPolicy, RetryPolicyOptions } from './RetryPolicy';
+import { FailurePolicy, FailurePolicyOptions } from './FailurePolicy';
 
 const DEFAULT_SCHEMA_NAME = 'queue';
 
@@ -23,7 +23,7 @@ export const createClient = async (postgresDsn: string, schemaName = DEFAULT_SCH
     unsubscribe: messageSubscriber.unsubscribe.bind(messageSubscriber),
     provideSubscription: subscriptionService.provideSubscription.bind(subscriptionService),
     provideTopic: topicService.provideTopic.bind(topicService),
-    provideRetryPolicy: (retryPolicyOptions: RetryPolicyOptions) => new RetryPolicy(retryPolicyOptions),
+    provideFailurePolicy: (failurePolicyOptions: FailurePolicyOptions) => new FailurePolicy(failurePolicyOptions),
     publish: publisher.publish.bind(publisher),
   };
 };

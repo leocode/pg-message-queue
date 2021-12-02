@@ -5,8 +5,6 @@ import { v4 as uuid4 } from 'uuid';
 import { SubscriptionService } from './SubscriptionService';
 
 export class Publisher {
-  private readonly DEFAULT_PRIORITY = 1000;
-
   constructor(
     private readonly subscriptionService: SubscriptionService,
     private readonly databaseManager: DatabaseManager,
@@ -36,7 +34,6 @@ export class Publisher {
       message_id: messageId,
       topic_id: topicId,
       message_data: message.data,
-      priority: this.DEFAULT_PRIORITY,
     });
 
     return messageId;

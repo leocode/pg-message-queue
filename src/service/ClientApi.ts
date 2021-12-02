@@ -1,7 +1,7 @@
 import { Subscription } from '../types/Subscription';
 import { Topic } from '../types/Topic';
 import { Message, MessageHandler } from '../types/Message';
-import { RetryPolicy, RetryPolicyOptions } from './RetryPolicy';
+import { FailurePolicy, FailurePolicyOptions } from './FailurePolicy';
 import { MessageSubscriberOptions } from './MessageSubscriber';
 
 export interface ClientApi {
@@ -19,5 +19,5 @@ export interface ClientApi {
 
   unsubscribe(handlerId: string): void;
 
-  provideRetryPolicy(retryPolicyOptions: RetryPolicyOptions): RetryPolicy;
+  provideFailurePolicy(failurePolicyOptions: FailurePolicyOptions): FailurePolicy;
 }

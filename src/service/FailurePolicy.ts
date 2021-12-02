@@ -1,18 +1,18 @@
-type RetryPolicyStrategy = 'default' | 'backoff';
+type FailurePolicyStrategy = 'default' | 'backoff';
 
-export interface RetryPolicyOptions {
-  strategy: RetryPolicyStrategy;
+export interface FailurePolicyOptions {
+  strategy: FailurePolicyStrategy;
   maxRetries: number;
   interval: number;
 }
-export class RetryPolicy {
-  constructor(private readonly options: RetryPolicyOptions) {}
+export class FailurePolicy {
+  constructor(private readonly options: FailurePolicyOptions) {}
 
   shouldRetryMessage(message: { retries: number }): boolean {
     return this.options.maxRetries > message.retries;
   }
 
-  getNextRetryTime(message: { retries: number }): number {
+  getNextRunAtDate(message: { retries: number }): number {
     const now = Date.now();
 
     switch (this.options.strategy) {

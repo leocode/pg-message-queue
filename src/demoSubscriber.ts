@@ -6,9 +6,9 @@ import { Order } from './demoPublisher';
 
   const topic = await client.provideTopic('order.created');
   const subscription = await client.provideSubscription(topic, 'order.created.inventory_check');
-  const retryPolicy = client.provideRetryPolicy({ strategy: 'backoff', maxRetries: 3, interval: 1000 });
+  const failurePolicy = client.provideFailurePolicy({ strategy: 'backoff', maxRetries: 3, interval: 1000 });
 
-  const handlerId = await client.subscribe<Order>(subscription, { retryPolicy }, async (message) => {
+  const handlerId = await client.subscribe<Order>(subscription, { failurePolicy }, async (message) => {
     console.log('New message received', message);
     if (Math.random() > 0.5) {
       throw new Error('Processing error');

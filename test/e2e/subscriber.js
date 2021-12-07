@@ -8,7 +8,7 @@ const { createClient } = require('../../dist/service/clientFactory');
 
   const subscription = await client.provideSubscription(topic, 'subscription.test');
 
-  await client.subscribe(subscription, async (message) => {
+  await client.subscribe(subscription, {}, async (message) => {
     console.log('New message received', message);
   });
 })();

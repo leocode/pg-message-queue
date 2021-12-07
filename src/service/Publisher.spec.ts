@@ -3,6 +3,7 @@ import { SubscriptionService } from './SubscriptionService';
 import { Publisher } from './Publisher';
 import { createSubscription, createTopic, POSTGRES_SCHEMA, POSTGRES_DSN } from '../../test/database';
 import { Order } from '../../test/types';
+import { SubscriptionMessageState } from '../types/SubscriptionMessage';
 
 describe('Publisher', () => {
   let databaseManager: DatabaseManager;
@@ -36,7 +37,7 @@ describe('Publisher', () => {
       .where('messages.topic_id', topic.id)
       .first();
 
-    expect(subscriptionMessage.message_state).toEqual('published');
+    expect(subscriptionMessage.message_state).toEqual(SubscriptionMessageState.Published);
     expect(subscriptionMessage.message_data).toEqual(messageData);
   });
 
@@ -64,7 +65,7 @@ describe('Publisher', () => {
     expect.assertions(3);
 
     (subscriptionMessage as Array<{ message_state: string }>).forEach((subMessage) => {
-      expect(subMessage.message_state).toEqual('published');
+      expect(subMessage.message_state).toEqual(SubscriptionMessageState.Published);
     });
   });
 });

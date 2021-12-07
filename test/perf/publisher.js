@@ -20,6 +20,6 @@ const [POSTGRES_DSN, TOPIC_NAME, MESSAGES_COUNT] = process.argv.slice(2);
     });
 
     messageIterator++;
-    await new Promise((resolve) => setTimeout(resolve, 20));
+    await new Promise((resolve) => setTimeout(resolve, 1));
   }
 })();

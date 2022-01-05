@@ -1,4 +1,4 @@
-import { createClient } from './service/clientFactory';
+import { createClient } from '../src';
 import { Order } from './demoPublisher';
 
 (async () => {

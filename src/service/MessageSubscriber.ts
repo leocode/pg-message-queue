@@ -34,11 +34,7 @@ export class MessageSubscriber {
     this.messageHandlerSubscriptions[handlerId] = true;
 
     const runner = async () => {
-      while (true) {
-        if (!this.messageHandlerSubscriptions[handlerId]) {
-          break;
-        }
-
+      while (this.messageHandlerSubscriptions[handlerId]) {
         await this.databaseManager.transactional(async (transactionScope) => {
           const message = await this.findMessage(subscriptionId, options, transactionScope);
 

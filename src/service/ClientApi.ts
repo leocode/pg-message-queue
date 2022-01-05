@@ -12,7 +12,7 @@ export interface ClientApi {
   publish<T>(topic: Topic, message: Message<T>): Promise<void>;
 
   subscribe<T>(
-    { topicId }: Subscription,
+    subscription: Subscription,
     options: MessageSubscriberOptions,
     handler: MessageHandler<T>,
   ): Promise<string>;

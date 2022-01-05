@@ -5,6 +5,7 @@ export interface FailurePolicyOptions {
   maxRetries: number;
   interval: number;
 }
+
 export class FailurePolicy {
   constructor(private readonly options: FailurePolicyOptions) {}
 

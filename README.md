@@ -79,3 +79,4 @@ type Order = {
 2. Message ordering
 3. Optional removing messages from db
 4. Parameterized messages ordering / priority
+5. Testcontainers

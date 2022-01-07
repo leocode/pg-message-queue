@@ -1,9 +1,11 @@
 import { createClient } from '../../src';
 import { POSTGRES_DSN, testDatabaseManager } from '../database';
-import { Order } from '../../src/demoPublisher';
+import { Order } from '../../examples/demoPublisher';
 import { ClientApi } from '../../src/service/ClientApi';
 import { Transactionless } from '../../src/service/DatabaseManager';
 import { SubscriptionMessageState } from '../../src/types/SubscriptionMessage';
+
+const wait = (timeInMilliseconds: number) => new Promise((resolve) => setTimeout(resolve, timeInMilliseconds));
 
 describe('publisher-subscriber e2e', () => {
   let publisher: ClientApi;
@@ -26,7 +28,7 @@ describe('publisher-subscriber e2e', () => {
       headers: {},
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await wait(500);
 
     const receivedMessage = await testDatabaseManager
       .subscriptionsMessages(Transactionless)

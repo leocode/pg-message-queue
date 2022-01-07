@@ -16,13 +16,13 @@ export class SubscriptionService {
     return this.create(name, topic);
   }
 
-  private async find(name: string, { id: topic_id }: Topic): Promise<Subscription | null> {
+  private async find(name: string, { id: topicId }: Topic): Promise<Subscription | null> {
     const queryBuilder = this.databaseManager.subscriptions(Transactionless);
 
     return queryBuilder
       .column({ id: 'subscription_id' }, 'name', { topicId: 'topic_id' })
       .where({
-        topic_id: topic_id,
+        topic_id: topicId,
         name,
       })
       .first();

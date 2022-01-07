@@ -3,12 +3,17 @@ import { Topic } from '../types/Topic';
 import { Message } from '../types/Message';
 import { v4 as uuid4 } from 'uuid';
 import { SubscriptionService } from './SubscriptionService';
+import { SubscriptionMessagesRepository } from './messageSubscriber/SubscriptionMessagesRepository';
 
 export class Publisher {
+  private queueMessageRepository: SubscriptionMessagesRepository;
+
   constructor(
     private readonly subscriptionService: SubscriptionService,
     private readonly databaseManager: DatabaseManager,
-  ) {}
+  ) {
+    this.queueMessageRepository = new SubscriptionMessagesRepository(databaseManager);
+  }
 
   async publish<T>({ id: topicId }: Topic, message: Message<T>): Promise<void> {
     await this.databaseManager.transactional(async (transactionScope) => {
@@ -16,13 +21,7 @@ export class Publisher {
       const messageId = await this.createMessage(topicId, message);
 
       for (const { id: subscriptionId } of subscriptions) {
-        const id = uuid4();
-
-        await this.databaseManager.subscriptionsMessages(transactionScope).insert({
-          id,
-          subscription_id: subscriptionId,
-          message_id: messageId,
-        });
+        await this.queueMessageRepository.create<T>({ messageId, subscriptionId }, { transaction: transactionScope });
       }
     });
   }

@@ -1,4 +1,4 @@
-import { createClient } from './service/clientFactory';
+import { createClient } from '../src';
 
 export type Order = {
   products: number[];

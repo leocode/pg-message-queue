@@ -1,8 +1,7 @@
 import { Subscription } from '../types/Subscription';
 import { Topic } from '../types/Topic';
 import { Message, MessageHandler } from '../types/Message';
-import { FailurePolicy, FailurePolicyOptions } from './FailurePolicy';
-import { MessageSubscriberOptions } from './MessageSubscriber';
+import { MessageSubscriberOptions } from './messageSubscriber/MessageSubscriber';
 
 export interface ClientApi {
   provideTopic(topicName: string): Promise<Topic>;
@@ -12,12 +11,10 @@ export interface ClientApi {
   publish<T>(topic: Topic, message: Message<T>): Promise<void>;
 
   subscribe<T>(
-    { topicId }: Subscription,
+    subscription: Subscription,
     options: MessageSubscriberOptions,
     handler: MessageHandler<T>,
   ): Promise<string>;
 
   unsubscribe(handlerId: string): void;
-
-  provideFailurePolicy(failurePolicyOptions: FailurePolicyOptions): FailurePolicy;
 }

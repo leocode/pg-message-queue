@@ -1,5 +1,5 @@
-import { QueueMessage, QueueMessageConstructor } from './QueuedMessageRepository';
+import { SubscriptionMessages, SubscriptionMessagesConstructor } from './SubscriptionMessagesRepository';
 
 export interface IFailureStrategy {
-  execute: <T>(queueMessage: QueueMessage<T>) => QueueMessageConstructor<T> | null;
+  execute: <T>(queueMessage: SubscriptionMessages<T>) => SubscriptionMessagesConstructor<T> | null;
 }

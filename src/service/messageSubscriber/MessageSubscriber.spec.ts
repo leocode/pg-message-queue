@@ -1,4 +1,4 @@
-import { DatabaseManager, Transactionless } from './DatabaseManager';
+import { DatabaseManager, Transactionless } from '../DatabaseManager';
 import { MessageSubscriber } from './MessageSubscriber';
 import {
   createMessage,
@@ -7,10 +7,11 @@ import {
   createTopic,
   POSTGRES_DSN,
   POSTGRES_SCHEMA,
-} from '../../test/database';
-import { Order } from '../../test/types';
-import { SubscriptionMessageState } from '../types/SubscriptionMessage';
-import { FailurePolicy } from './FailurePolicy';
+} from '../../../test/database';
+import { Order } from '../../../test/types';
+import { SubscriptionMessageState } from '../../types/SubscriptionMessage';
+import { RetryFailureStrategy } from './RetryFailureStrategy';
+import { wait } from '../../utils';
 
 describe('Message Subscriber', () => {
   let databaseManager: DatabaseManager;
@@ -35,7 +36,7 @@ describe('Message Subscriber', () => {
       message_state: SubscriptionMessageState.Published,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await wait(100);
 
     const messageFound = await databaseManager
       .subscriptionsMessages(Transactionless)
@@ -59,7 +60,7 @@ describe('Message Subscriber', () => {
       message_state: SubscriptionMessageState.Published,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await wait(2000);
 
     const messageFound = await databaseManager
       .subscriptionsMessages(Transactionless)
@@ -77,7 +78,7 @@ describe('Message Subscriber', () => {
 
     const handlerId = await messageSubscriber.subscribe<Order>(subscription, {}, jest.fn().mockRejectedValue({}));
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await wait(500);
 
     messageSubscriber.unsubscribe(handlerId);
 
@@ -102,9 +103,9 @@ describe('Message Subscriber', () => {
 
     const topic = await createTopic();
     const subscription = await createSubscription(topic.id);
-    const failurePolicy = new FailurePolicy({ strategy: 'default', maxRetries: 3, interval: 50 });
+    const failureStrategy = new RetryFailureStrategy(3);
 
-    await messageSubscriber.subscribe<Order>(subscription, { failurePolicy }, handlerMock.mockRejectedValue({}));
+    await messageSubscriber.subscribe<Order>(subscription, { failureStrategy }, handlerMock.mockRejectedValue({}));
 
     const message = await createMessage(topic.id, messageData);
     await createSubscriptionMessage(subscription.id, {
@@ -112,15 +113,13 @@ describe('Message Subscriber', () => {
       message_state: SubscriptionMessageState.Published,
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await wait(2000);
 
-    const messageFound = await databaseManager
+    const messages = await databaseManager
       .subscriptionsMessages(Transactionless)
-      .where('message_id', message.message_id)
-      .first();
+      .where('message_id', message.message_id);
 
-    expect(messageFound.message_state).toEqual(SubscriptionMessageState.ProcessingError);
-    expect(messageFound.retries).toEqual(3);
-    expect(handlerMock).toHaveBeenCalledTimes(4);
+    expect(messages.length).toEqual(3);
+    expect(handlerMock).toHaveBeenCalledTimes(3);
   });
 });

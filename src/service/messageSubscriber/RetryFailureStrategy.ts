@@ -1,10 +1,10 @@
 import { IFailureStrategy } from './IFailureStrategy';
-import { QueueMessage, QueueMessageConstructor } from './QueuedMessageRepository';
+import { SubscriptionMessages, SubscriptionMessagesConstructor } from './SubscriptionMessagesRepository';
 
 export class RetryFailureStrategy implements IFailureStrategy {
   constructor(private retryTimes: number) {}
 
-  execute<T>(queueMessage: QueueMessage<T>): QueueMessageConstructor<T> | null {
+  execute<T>(queueMessage: SubscriptionMessages<T>): SubscriptionMessagesConstructor<T> | null {
     const retryTimesWhenCounterStartFrom0 = this.retryTimes - 1;
     if (queueMessage.retries < retryTimesWhenCounterStartFrom0) {
       return {

@@ -31,8 +31,8 @@ export class DatabaseManager {
     await this.knex.destroy();
   }
 
-  messages(transactionScope: Transaction) {
-    return this.createQueryBuilder<MessageEntity>('messages', transactionScope);
+  messages<T>(transactionScope: Transaction) {
+    return this.createQueryBuilder<MessageEntity<T>>('messages', transactionScope);
   }
 
   subscriptions(transactionScope: Transaction) {
